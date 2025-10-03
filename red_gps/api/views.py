@@ -32,6 +32,7 @@ def detalle_ubicacion(request, pk):
     return render(request, "detalle_ubicacion.html", {"ubicacion": ubicacion})
 
 def eliminar_ubicacion(request, pk):
+    ubicaciones = Ubicacion.objects.all().order_by("-fecha_hora")
     ubicacion = get_object_or_404(Ubicacion, pk=pk)
     ubicacion.delete()
     return render(request, "lista_ubicaciones.html", {"mensage": "Ubicación eliminada", "ubicaciones": ubicaciones})
