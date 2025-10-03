@@ -1,41 +1,40 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Mapa</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <style>
-    #map {
-      height: 400px;
-      width: 100%;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Mapa de ubicación</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <style>
+        #map {
+            height: 500px;   /* Aseguramos altura */
+            width: 100%;
+        }
+    </style>
 </head>
 <body>
-  <h1>Ubicación guardada</h1>
+    <h1>Ubicación guardada</h1>
 
-  <div id="map"></div>
+    <div id="map"></div>
 
-  <script>
-    // Coordenadas que te manda Django
-    let lat = {{ ubicacion.latitud }};
-    let lon = {{ ubicacion.longitud }};
+    <script>
+        // Pasamos coordenadas desde Django a JS
+        let lat = {{ ubicacion.latitud|safe }};
+        let lon = {{ ubicacion.longitud|safe }};
 
-    // Crear mapa
-    var map = L.map('map').setView([lat, lon], 13);
+        // Creamos el mapa centrado en esas coords
+        var map = L.map('map').setView([lat, lon], 15);
 
-    // Capa de mapa base (OpenStreetMap)
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
+        // Capa de OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
 
-    // Marcador
-    L.marker([lat, lon]).addTo(map)
-      .bindPopup("Ubicación guardada")
-      .openPopup();
-  </script>
+        // Marcador
+        L.marker([lat, lon]).addTo(map)
+            .bindPopup("Ubicación guardada:<br>Lat: " + lat + "<br>Lon: " + lon)
+            .openPopup();
+    </script>
 </body>
 </html>
-
