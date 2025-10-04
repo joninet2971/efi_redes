@@ -15,8 +15,12 @@ def guardar_ubicacion(request):
             lat = data.get("latitud")
             lon = data.get("longitud")
             if lat and lon:
-                Ubicacion.objects.create(latitud=lat, longitud=lon)
-                return JsonResponse({"status": "ok", "message": "Ubicación guardada"})
+                ubicacion = Ubicacion.objects.create(latitud=lat, longitud=lon)
+                return JsonResponse({
+                    "status": "ok", 
+                    "message": "Ubicación guardada",
+                    "redirect_url": f"/detalle/{ubicacion.id}/"
+                })
             else:
                 return JsonResponse({"status": "error", "message": "Faltan datos"})
         except Exception as e:

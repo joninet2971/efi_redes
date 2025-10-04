@@ -2,20 +2,123 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Mapa de ubicación</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de Ubicación - GPS Tracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .content-wrapper {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 2rem;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
         #map {
-            height: 500px;   /* Aseguramos altura */
+            height: 500px;
             width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .info-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .info-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .info-item i {
+            font-size: 1.5rem;
+            margin-right: 1rem;
+        }
+        .btn-custom {
+            border-radius: 25px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #667eea;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
         }
     </style>
 </head>
 <body>
-    <h1>Ubicación guardada</h1>
+    <div class="container">
+        <div class="content-wrapper">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="bi bi-geo-alt-fill"></i> Detalle de Ubicación</h1>
+                <a href="{% url 'lista_ubicaciones' %}" class="btn btn-outline-secondary btn-custom">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+            </div>
 
-    <div id="map"></div>
+            <div class="info-card">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="info-item">
+                            <i class="bi bi-compass"></i>
+                            <div>
+                                <small>Latitud</small>
+                                <div><strong>{{ ubicacion.latitud }}</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="info-item">
+                            <i class="bi bi-compass-fill"></i>
+                            <div>
+                                <small>Longitud</small>
+                                <div><strong>{{ ubicacion.longitud }}</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="info-item">
+                            <i class="bi bi-clock"></i>
+                            <div>
+                                <small>Fecha y Hora</small>
+                                <div><strong>{{ ubicacion.fecha_hora|date:"d/m/Y H:i" }}</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="map"></div>
+
+            <div class="mt-4 d-flex gap-2">
+                <a href="{% url 'enviar_ubicacion' %}" class="btn btn-primary btn-custom">
+                    <i class="bi bi-plus-circle"></i> Nueva Ubicación
+                </a>
+                <a href="{% url 'eliminar_ubicacion' ubicacion.id %}" class="btn btn-danger btn-custom" 
+                   onclick="return confirm('¿Estás seguro de eliminar esta ubicación?')">
+                    <i class="bi bi-trash"></i> Eliminar
+                </a>
+                <a href="https://www.google.com/maps?q={{ ubicacion.latitud }},{{ ubicacion.longitud }}" 
+                   target="_blank" class="btn btn-success btn-custom">
+                    <i class="bi bi-map"></i> Ver en Google Maps
+                </a>
+            </div>
+        </div>
+    </div>
 
     <script>
         // Pasamos coordenadas desde Django a JS
@@ -31,9 +134,16 @@
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // Marcador
-        L.marker([lat, lon]).addTo(map)
-            .bindPopup("Ubicación guardada:<br>Lat: " + lat + "<br>Lon: " + lon)
+        // Marcador personalizado
+        var customIcon = L.divIcon({
+            className: 'custom-marker',
+            html: '<i class="bi bi-geo-alt-fill" style="font-size: 2rem; color: #dc3545;"></i>',
+            iconSize: [30, 42],
+            iconAnchor: [15, 42]
+        });
+
+        L.marker([lat, lon], {icon: customIcon}).addTo(map)
+            .bindPopup("<strong>📍 Ubicación guardada</strong><br>Lat: " + lat + "<br>Lon: " + lon)
             .openPopup();
     </script>
 </body>

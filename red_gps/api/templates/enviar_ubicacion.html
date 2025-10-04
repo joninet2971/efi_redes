@@ -3,36 +3,182 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Enviar ubicación</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enviar Ubicación - GPS Tracker</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .content-wrapper {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      padding: 3rem;
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+    }
+    h1 {
+      color: #667eea;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+    }
+    .icon-wrapper {
+      font-size: 5rem;
+      color: #667eea;
+      margin-bottom: 1.5rem;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+    .btn-custom {
+      border-radius: 25px;
+      padding: 1rem 2rem;
+      font-weight: 500;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      margin: 0.5rem;
+    }
+    .btn-custom:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    .btn-primary-custom {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      color: white;
+    }
+    .info-box {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin: 2rem 0;
+      text-align: left;
+    }
+    .info-box h5 {
+      color: #667eea;
+      margin-bottom: 1rem;
+    }
+    .info-box ul {
+      margin-bottom: 0;
+    }
+    .spinner-border {
+      display: none;
+    }
+    .loading .spinner-border {
+      display: inline-block;
+    }
+    #status-message {
+      margin-top: 1rem;
+      font-weight: 500;
+    }
+  </style>
 </head>
-<body class="container py-5">
+<body>
+  <div class="container">
+    <div class="content-wrapper">
+      <div class="icon-wrapper">
+        <i class="bi bi-geo-alt-fill"></i>
+      </div>
+      
+      <h1>Enviar Ubicación GPS</h1>
+      <p class="text-muted">Comparte tu ubicación actual y guárdala en el sistema</p>
 
-  <h1 class="mb-4">Enviar ubicación</h1>
-  <button onclick="enviarUbicacion()" class="btn btn-primary">📍 Enviar ubicación</button>
-  <a href="{% url 'lista_ubicaciones' %}" class="btn btn-secondary ms-2">Ver todas</a>
+      <div class="info-box">
+        <h5><i class="bi bi-info-circle"></i> ¿Cómo funciona?</h5>
+        <ul>
+          <li>Haz clic en el botón "Enviar Ubicación"</li>
+          <li>Permite el acceso a tu ubicación cuando el navegador lo solicite</li>
+          <li>Tu ubicación se guardará automáticamente</li>
+          <li>Serás redirigido al mapa con tu ubicación</li>
+        </ul>
+      </div>
+
+      <div id="status-message"></div>
+
+      <div class="mt-4">
+        <button onclick="enviarUbicacion()" class="btn btn-primary-custom btn-custom" id="btn-enviar">
+          <i class="bi bi-send-fill"></i> Enviar Ubicación
+          <span class="spinner-border spinner-border-sm ms-2" role="status"></span>
+        </button>
+        <br>
+        <a href="{% url 'lista_ubicaciones' %}" class="btn btn-outline-secondary btn-custom">
+          <i class="bi bi-list-ul"></i> Ver Ubicaciones Guardadas
+        </a>
+      </div>
+    </div>
+  </div>
 
   <script>
     function enviarUbicacion() {
+      const btn = document.getElementById('btn-enviar');
+      const statusMsg = document.getElementById('status-message');
+      
       if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(pos) {
-          let lat = pos.coords.latitude;
-          let lon = pos.coords.longitude;
+        btn.classList.add('loading');
+        btn.disabled = true;
+        statusMsg.innerHTML = '<div class="alert alert-info"><i class="bi bi-hourglass-split"></i> Obteniendo ubicación...</div>';
+        
+        navigator.geolocation.getCurrentPosition(
+          function(pos) {
+            let lat = pos.coords.latitude;
+            let lon = pos.coords.longitude;
+            
+            statusMsg.innerHTML = '<div class="alert alert-info"><i class="bi bi-cloud-upload"></i> Guardando ubicación...</div>';
 
-          fetch("{% url 'guardar_ubicacion' %}", {
-            method: "POST",
-            headers: {
-              "X-CSRFToken": "{{ csrf_token }}",
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ latitud: lat, longitud: lon })
-          })
-          .then(response => response.json())
-          .then(data => alert(data.message))
-          .catch(error => alert("Error: " + error));
-        });
+            fetch("{% url 'guardar_ubicacion' %}", {
+              method: "POST",
+              headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({ latitud: lat, longitud: lon })
+            })
+            .then(response => response.json())
+            .then(data => {
+              statusMsg.innerHTML = '<div class="alert alert-success"><i class="bi bi-check-circle"></i> ' + data.message + '</div>';
+              if (data.redirect_url) {
+                setTimeout(() => {
+                  window.location.href = data.redirect_url;
+                }, 1000);
+              }
+            })
+            .catch(error => {
+              statusMsg.innerHTML = '<div class="alert alert-danger"><i class="bi bi-exclamation-triangle"></i> Error: ' + error + '</div>';
+              btn.classList.remove('loading');
+              btn.disabled = false;
+            });
+          },
+          function(error) {
+            let errorMsg = '';
+            switch(error.code) {
+              case error.PERMISSION_DENIED:
+                errorMsg = "Permiso denegado. Por favor, permite el acceso a tu ubicación.";
+                break;
+              case error.POSITION_UNAVAILABLE:
+                errorMsg = "Ubicación no disponible.";
+                break;
+              case error.TIMEOUT:
+                errorMsg = "Tiempo de espera agotado.";
+                break;
+              default:
+                errorMsg = "Error desconocido.";
+            }
+            statusMsg.innerHTML = '<div class="alert alert-danger"><i class="bi bi-exclamation-triangle"></i> ' + errorMsg + '</div>';
+            btn.classList.remove('loading');
+            btn.disabled = false;
+          }
+        );
       } else {
-        alert("La geolocalización no está soportada en este navegador");
+        statusMsg.innerHTML = '<div class="alert alert-danger"><i class="bi bi-exclamation-triangle"></i> La geolocalización no está soportada en este navegador</div>';
       }
     }
   </script>

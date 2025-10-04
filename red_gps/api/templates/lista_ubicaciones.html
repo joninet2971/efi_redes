@@ -2,36 +2,135 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Ubicaciones guardadas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ubicaciones Guardadas - GPS Tracker</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    .content-wrapper {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      padding: 2rem;
+      margin-top: 2rem;
+      margin-bottom: 2rem;
+    }
+    h1 {
+      color: #667eea;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+    }
+    .table-wrapper {
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .table thead {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .table tbody tr {
+      transition: all 0.3s ease;
+    }
+    .table tbody tr:hover {
+      background-color: #f8f9fa;
+      transform: scale(1.01);
+    }
+    .btn-custom {
+      border-radius: 25px;
+      padding: 0.5rem 1.5rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+    .btn-custom:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    .stats-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    .stats-card i {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: #6c757d;
+    }
+    .empty-state i {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+    }
+  </style>
 </head>
-<body class="container py-5">
-  <h1 class="mb-4">Ubicaciones guardadas</h1>
+<body>
+  <div class="container">
+    <div class="content-wrapper">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-pin-map-fill"></i> Ubicaciones Guardadas</h1>
+        <a href="{% url 'enviar_ubicacion' %}" class="btn btn-primary btn-custom">
+          <i class="bi bi-plus-circle"></i> Nueva Ubicación
+        </a>
+      </div>
 
-  <table class="table table-striped table-bordered">
-    <thead class="table-dark">
-      <tr>
-        <th>Fecha y hora</th>
-        <th>Latitud</th>
-        <th>Longitud</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for u in ubicaciones %}
-      <tr>
-        <td>{{ u.fecha_hora }}</td>
-        <td>{{ u.latitud }}</td>
-        <td>{{ u.longitud }}</td>
-        <td>
-          <a href="{% url 'detalle_ubicacion' u.id %}" class="btn btn-sm btn-info">Ver en mapa</a>
-          <a href="{% url 'eliminar_ubicacion' u.id %}" class="btn btn-sm btn-danger">eliminar</a>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+      {% if ubicaciones %}
+      <div class="stats-card">
+        <i class="bi bi-geo-alt"></i>
+        <h3>{{ ubicaciones|length }}</h3>
+        <p class="mb-0">Ubicaciones registradas</p>
+      </div>
 
-  <a href="{% url 'enviar_ubicacion' %}" class="btn btn-primary">📍 Enviar nueva ubicación</a>
+      <div class="table-wrapper">
+        <table class="table table-striped table-hover mb-0">
+          <thead>
+            <tr>
+              <th><i class="bi bi-calendar-event"></i> Fecha y hora</th>
+              <th><i class="bi bi-compass"></i> Latitud</th>
+              <th><i class="bi bi-compass-fill"></i> Longitud</th>
+              <th class="text-center"><i class="bi bi-gear"></i> Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for u in ubicaciones %}
+            <tr>
+              <td><i class="bi bi-clock text-primary"></i> {{ u.fecha_hora|date:"d/m/Y H:i" }}</td>
+              <td>{{ u.latitud|floatformat:6 }}</td>
+              <td>{{ u.longitud|floatformat:6 }}</td>
+              <td class="text-center">
+                <a href="{% url 'detalle_ubicacion' u.id %}" class="btn btn-sm btn-info" title="Ver en mapa">
+                  <i class="bi bi-map"></i> Ver mapa
+                </a>
+                <a href="{% url 'eliminar_ubicacion' u.id %}" class="btn btn-sm btn-danger" 
+                   onclick="return confirm('¿Estás seguro de eliminar esta ubicación?')" title="Eliminar">
+                  <i class="bi bi-trash"></i>
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <i class="bi bi-geo-alt-fill"></i>
+        <h3>No hay ubicaciones guardadas</h3>
+        <p>Comienza enviando tu primera ubicación</p>
+        <a href="{% url 'enviar_ubicacion' %}" class="btn btn-primary btn-custom mt-3">
+          <i class="bi bi-plus-circle"></i> Enviar primera ubicación
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
 </body>
 </html>
